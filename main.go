@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/lib/pq"
@@ -69,27 +70,45 @@ func main() {
 	// `)
 
 	// scan employees data
-	rows, err := db.Query("SELECT * FROM Employees")
+	// rows, err := db.Query("SELECT * FROM Employees")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// var employees []Employee
+
+	// for rows.Next() {
+	// 	var employee Employee 
+
+	// 	err := rows.Scan(&employee.ID, &employee.Name, &employee.age, &employee.address, &employee.salary)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+
+	// 	employees = append(employees, employee)
+	// }
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println(employees)
+
+	// scan only one employee data
+	row := db.QueryRow("SELECT * FROM Employees WHERE ID = 1")
 	if err != nil {
 		panic(err)
 	}
 
-	var employees []Employee
+	var employee Employee 
 
-	for rows.Next() {
-		var employee Employee 
-
-		err := rows.Scan(&employee.ID, &employee.Name, &employee.age, &employee.address, &employee.salary)
-		if err != nil {
-			panic(err)
-		}
-
-		employees = append(employees, employee)
-	}
-
-	if err != nil {
+	err = row.Scan(&employee.ID,&employee.Name, &employee.age, &employee.address, &employee.salary)
+	if errors.Is(err, sql.ErrNoRows) {
+		fmt.Println("Data tidak diterima")
+		return
+	} else if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(employees)
+	fmt.Println(employee)
 }
