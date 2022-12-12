@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 
 	_ "github.com/lib/pq"
@@ -33,6 +32,12 @@ type Employee struct {
 	age int `sql:"age"`
 	address string `sql:"address"`
 	salary float32 `sql:"salary"`
+}
+
+type EmployeeDepartment struct {
+	ID int `sql:"ID"`
+	Name string `sql:"Name"`
+	Department string `sql:"Department"`
 }
 
 func main() {
@@ -95,20 +100,46 @@ func main() {
 	// fmt.Println(employees)
 
 	// scan only one employee data
-	row := db.QueryRow("SELECT * FROM Employees WHERE ID = 1")
+	// row := db.QueryRow("SELECT * FROM Employees WHERE ID = 1")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// var employee Employee 
+
+	// err = row.Scan(&employee.ID,&employee.Name, &employee.age, &employee.address, &employee.salary)
+	// if errors.Is(err, sql.ErrNoRows) {
+	// 	fmt.Println("Data tidak diterima")
+	// 	return
+	// } else if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println(employee)
+
+	// inner join
+	rows, err := db.Query(`
+		SELECT Employees.ID AS "ID", Employees.NAME AS "Name", Departments.NAME AS "Department"
+		FROM Employees INNER JOIN Departments
+		ON Employees.id_department = Departments.ID
+		ORDER BY Employees.ID ASC
+	`)
 	if err != nil {
 		panic(err)
 	}
 
-	var employee Employee 
+	var employeeDepartments []EmployeeDepartment
 
-	err = row.Scan(&employee.ID,&employee.Name, &employee.age, &employee.address, &employee.salary)
-	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Println("Data tidak diterima")
-		return
-	} else if err != nil {
-		panic(err)
+	for rows.Next() {
+		var employeeDepartment EmployeeDepartment
+
+		err := rows.Scan(&employeeDepartment.ID, &employeeDepartment.Name, &employeeDepartment.Department)
+		if err != nil {
+			panic(err)
+		}
+
+		employeeDepartments = append(employeeDepartments, employeeDepartment)
 	}
 
-	fmt.Println(employee)
+	fmt.Println(employeeDepartments)
 }
